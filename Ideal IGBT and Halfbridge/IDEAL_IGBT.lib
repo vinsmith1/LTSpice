@@ -1,0 +1,68 @@
+* created by vws 9/28/2009
+* 4/21/2016 - added IDEAL_B6CI subcircuit
+* 11/30/2017 - added B6CI_PWM subcircuit (experimental)
+
+.subckt IDEAL_IGBT G C K E A
+S1 P001 C G 0 smod
+D1 A K D
+D2 P001 E D
+.model D D
+.model smod vswitch(ron = 0.001, voff = 0, von = 1, roff = 10meg)
+.lib ..\cmp\standard.dio
+.ends IDEAL_IGBT
+
+
+.subckt IDEAL_Halfbridge G+ C1 K1 AC E2 A2
+S1 P001 C1 G+ 0 smod1
+D1 AC K1 D
+D2 P001 AC D
+S2 P002 AC G+ 0 smod2
+D3 A2 AC D
+D4 P002 E2 D
+.model D D
+.lib ..\cmp\standard.dio
+.model smod1 vswitch(ron = 0.001, voff = 0, von = 1, roff = 10meg)
+.model smod2 vswitch(ron = 0.001, voff = 1, von = 0, roff = 10meg)
+.ends IDEAL_IGBT_Halfbridge
+
+
+.subckt IDEAL_B6CI DC+ DC- AC1 AC2 AC3 G1 G2 G3
+S1 P001 DC+ G1 0 smod1
+D1 AC1 DC+ D
+D2 P001 AC1 D
+S2 P002 AC1 G1 0 smod2
+D3 DC- AC1 D
+D4 P002 DC- D
+S3 P003 DC+ G2 0 smod1
+D5 AC2 DC+ D
+D6 P003 AC2 D
+S4 P004 AC2 G2 0 smod2
+D7 DC- AC2 D
+D8 P004 DC- D
+S5 P005 DC+ G3 0 smod1
+D9 AC3 DC+ D
+D10 P005 AC3 D
+S6 P006 AC3 G3 0 smod2
+D11 DC- AC3 D
+D12 P006 DC- D
+.model D D
+.lib ..\cmp\standard.dio
+.model smod1 vswitch(ron = 0.001, voff = 0, von = 1, roff = 10meg)
+.model smod2 vswitch(ron = 0.001, voff = 1, von = 0, roff = 10meg)
+.ends IDEAL_B6CI
+
+
+* experimental
+.subckt B6CI_PWM
+V2 VA 0 SINE(0 {m} {fout} 0 0 0)
+V3 VTRI 0 PULSE(-1 1 0 {1/(2*fsw)} {1/(2*fsw)} 0 {1/fsw})
+V4 VB 0 SINE(0 {m} {fout} 0 0 120)
+V5 VC 0 SINE(0 {m} {fout} 0 0 240)
+B1 VgA 0 V={if(V(VA)>V(VTRI),1,0)}
+B2 VgB 0 V={if(V(VB)>V(VTRI),1,0)}
+B3 VgC 0 V={if(V(VC)>V(VTRI),1,0)}
+.param fout = 60
+.param fsw=3k
+.param m = 0.99
+.backanno
+.ends
